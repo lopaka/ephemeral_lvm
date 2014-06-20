@@ -86,7 +86,6 @@ else
             "/dev/mapper/#{logical_volume_device_name}"
           end
         )
-        mkfs_options node['rs-storage']['device']['mkfs_options']
         mount node['ephemeral_lvm']['mount_point']
         pass 0
         options defaults, noatime
