@@ -55,3 +55,11 @@ attribute "ephemeral_lvm/stripe_size",
   :default => "512",
   :recipes => ["ephemeral_lvm::default"],
   :required => "optional"
+
+attribute 'ephemeral_lvm/encryption',
+  :display_name => 'Ephemeral LVM Encryption',
+  :description => 'If enabled, will use LUKS to encrypt ephemeral_lvm device.',
+  :default => 'false',
+  :choice => ['true', 'false'],
+  :recipes => ['ephemeral_lvm::default'],
+  :required => 'optional'
