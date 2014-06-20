@@ -34,3 +34,6 @@ default['ephemeral_lvm']['logical_volume_name'] = "ephemeral0"
 
 # The stripe size in kilobytes to be used if more than one ephemeral disk is found
 default['ephemeral_lvm']['stripe_size'] = 512
+
+# Option to enable encryption
+default['ephemeral_lvm']['encryption'] = false
