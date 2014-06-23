@@ -63,7 +63,8 @@ else
       # Verify cryptsetup is installed
       package 'cryptsetup'
 
-      encryption_key = SecureRandom.random_bytes(256)
+      # Passing 128 to hex returns string of 128*2=256
+      encryption_key = SecureRandom.hex(128)
 
       execute 'cryptsetup format ephemeral_lvm' do
         environment 'ENCRYPTION_KEY' => encryption_key
