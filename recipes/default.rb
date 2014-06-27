@@ -63,8 +63,12 @@ else
       # Verify cryptsetup is installed
       package 'cryptsetup'
 
-      # Passing 128 to hex returns string of 128*2=256
-      encryption_key = SecureRandom.hex(128)
+      # If random encryption_key is already set, it's most likely due to reboot.
+      if node['ephemeral_lvm']['encryption_key'].to_s.empty?
+        # Passing 128 to hex returns string of 128*2=256
+        node.set['ephemeral_lvm']['encryption_key'] = SecureRandom.hex(128)
+      end
+      encryption_key = node['ephemeral_lvm']['encryption_key']
 
       execute 'cryptsetup format ephemeral_lvm' do
         environment 'ENCRYPTION_KEY' => encryption_key
