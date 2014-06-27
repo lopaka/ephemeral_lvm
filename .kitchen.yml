@@ -37,7 +37,7 @@ suites:
     cloud:
       provider: vagrant
     ephemeral_lvm:
-      filesystem: ext3
+      filesystem: ext4
     vagrant:
       block_device_mapping_ephemeral0: loop0
       block_device_mapping_ephemeral1: loop1
@@ -54,7 +54,7 @@ suites:
     cloud:
       provider: gce
     ephemeral_lvm:
-      filesystem: ext3
+      filesystem: ext4
     gce:
       attached_disks:
         disks:
@@ -70,3 +70,17 @@ suites:
           index: 2
           mode: READ_WRITE
           type: EPHEMERAL
+
+# This test suite recreates the default test suite with ephemeral encryption enabled.
+#
+- name: encryption
+  run_list: ["recipe[fake]", "recipe[ephemeral_lvm]"]
+  attributes:
+    cloud:
+      provider: vagrant
+    ephemeral_lvm:
+      filesystem: ext4
+      encryption: true
+    vagrant:
+      block_device_mapping_ephemeral0: loop0
+      block_device_mapping_ephemeral1: loop1

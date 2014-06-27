@@ -37,3 +37,6 @@ default['ephemeral_lvm']['stripe_size'] = 512
 
 # Option to enable encryption
 default['ephemeral_lvm']['encryption'] = false
+
+# Encryption key
+default['ephemeral_lvm']['encryption_key'] = nil
