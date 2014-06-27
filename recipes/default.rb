@@ -42,16 +42,61 @@ else
     #
     lvm_volume_group node['ephemeral_lvm']['volume_group_name'] do
       physical_volumes ephemeral_devices
+    end
 
-      logical_volume node['ephemeral_lvm']['logical_volume_name'] do
-        size node['ephemeral_lvm']['logical_volume_size']
-        filesystem node['ephemeral_lvm']['filesystem']
-        mount_point location: node['ephemeral_lvm']['mount_point'], options: ['defaults', 'noauto'], pass: 0
-        if ephemeral_devices.size > 1
-          stripes ephemeral_devices.size
-          stripe_size node['ephemeral_lvm']['stripe_size'].to_i
-        end
+    lvm_logical_volume node['ephemeral_lvm']['logical_volume_name'] do
+      group node['ephemeral_lvm']['volume_group_name']
+      size node['ephemeral_lvm']['logical_volume_size']
+      if ephemeral_devices.size > 1
+        stripes ephemeral_devices.size
+        stripe_size node['ephemeral_lvm']['stripe_size'].to_i
       end
+    end
+
+    logical_volume_device_name = node['ephemeral_lvm']['volume_group_name'].gsub(/-/,'--') + "-" + node['ephemeral_lvm']['logical_volume_name'].gsub(/-/,'--')
+
+    # Encrypt if enabled
+    if node['ephemeral_lvm']['encryption'] == true || node['ephemeral_lvm']['encryption'] == 'true'
+
+      require 'securerandom'
+
+      # Verify cryptsetup is installed
+      package 'cryptsetup'
+
+      # If random encryption_key is already set, it's most likely due to reboot.
+      if node['ephemeral_lvm']['encryption_key'].to_s.empty?
+        # Passing 128 to hex returns string of 128*2=256
+        node.set['ephemeral_lvm']['encryption_key'] = SecureRandom.hex(128)
+      end
+      encryption_key = node['ephemeral_lvm']['encryption_key']
+
+      execute 'cryptsetup format ephemeral_lvm' do
+        environment 'ENCRYPTION_KEY' => encryption_key
+        command "echo -n ${ENCRYPTION_KEY} | cryptsetup luksFormat /dev/mapper/#{logical_volume_device_name} --batch-mode"
+        not_if "cryptsetup isLuks /dev/mapper/#{logical_volume_device_name}"
+      end
+
+      execute 'cryptsetup open ephemeral_lvm' do
+        environment 'ENCRYPTION_KEY' => encryption_key
+        command "echo -n ${ENCRYPTION_KEY} | cryptsetup luksOpen /dev/mapper/#{logical_volume_device_name} encrypted-#{logical_volume_device_name} --key-file=-"
+        not_if { ::File.exists?("/dev/mapper/encrypted-#{logical_volume_device_name}") }
+      end
+    end
+
+    # Format, add fstab entry, and mount
+    filesystem logical_volume_device_name do
+      fstype node['ephemeral_lvm']['filesystem']
+      device(
+        if node['ephemeral_lvm']['encryption'] == true || node['ephemeral_lvm']['encryption'] == 'true'
+          "/dev/mapper/encrypted-#{logical_volume_device_name}"
+        else
+          "/dev/mapper/#{logical_volume_device_name}"
+        end
+      )
+      mount node['ephemeral_lvm']['mount_point']
+      pass 0
+      options "defaults,noatime"
+      action [:create, :enable, :mount]
     end
   end
 end
