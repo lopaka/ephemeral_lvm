@@ -41,6 +41,11 @@ module EphemeralLvm
           end
         end
 
+        # Support for NVMe devices - example I3
+        if node['ec2']
+          ephemeral_devices += Dir.glob("/dev/nvme*n1")
+        end
+
         # Removes nil elements from the ephemeral_devices array if any.
         ephemeral_devices.compact!
 
