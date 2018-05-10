@@ -44,6 +44,11 @@ module EphemeralLvm
         # Support for NVMe devices - example I3
         if node['ec2']
           ephemeral_devices += Dir.glob("/dev/nvme*n1")
+
+          # Remove root disk from the list
+          if ::File.read('/proc/mounts').include?('/dev/nvme0n1p1 / ')
+            ephemeral_devices -= ['/dev/nvme0n1']
+          end
         end
 
         # Removes nil elements from the ephemeral_devices array if any.
@@ -58,6 +63,9 @@ module EphemeralLvm
           )
           Chef::Log.info "Ephemeral disks found for cloud '#{cloud}': #{ephemeral_devices.inspect}"
         end
+
+        # Check that devices exist
+        ephemeral_devices.select! { |x| ::File.exist?(x) }
       else
         # Cloud specific ephemeral detection logic if the cloud doesn't support block_device_mapping
         #
