@@ -66,7 +66,7 @@ else
       # If random encryption_key is already set, it's most likely due to reboot.
       if node['ephemeral_lvm']['encryption_key'].to_s.empty?
         # Passing 128 to hex returns string of 128*2=256
-        node.set['ephemeral_lvm']['encryption_key'] = SecureRandom.hex(128)
+        node.default['ephemeral_lvm']['encryption_key'] = SecureRandom.hex(128)
         node.save unless Chef::Config[:solo] #Do not loose it if chef run fails
       end
       encryption_key = node['ephemeral_lvm']['encryption_key']

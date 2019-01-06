@@ -11,8 +11,8 @@
     "debian": ">= 0.0.0"
   },
   "dependencies": {
-    "lvm": "~> 1.3.6",
-    "filesystem": "~> 0.10.0"
+    "lvm": "~> 4.5.1",
+    "filesystem": "~> 1.0.0"
   },
   "recommendations": {
   },

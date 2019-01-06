@@ -41,11 +41,14 @@ module EphemeralLvm
           end
         end
 
-        # Support for NVMe devices - example I3
-        # Skip for C5 and etc where root and regular EBS volumes for db are also nvme
-        if node['ec2'] && !::File.read('/proc/mounts').include?('/dev/nvme0n1p1 / ')
-          ephemeral_devices += Dir.glob("/dev/nvme*n1")
-        end
+        # Support for NVMe devices - example i3/c5/m5/r5
+		# c5/m5/r5 root device is nmve divice, so skip all mounted devices 
+
+        if node['ec2']
+			Dir.glob("/dev/nvme*n1").each do |nvme_device|
+            	ephemeral_devices.push nvme_device unless ::File.read('/proc/mounts').include?(nvme_device)
+			end
+		end
 
         # Removes nil elements from the ephemeral_devices array if any.
         ephemeral_devices.compact!
